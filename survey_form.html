@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href='https://fonts.googleapis.com/css?family=ABeeZee' rel='stylesheet'>
+    <style>
+      :root {
+        --back-image-url: url(http://math.bme.hu/~majoros/fcc/holiday_back.gif);
+      }
+      @media (min-aspect-ratio: 3/2) {
+        body {
+          background-image: var(--back-image-url);
+	  background-repeat: no-repeat;
+	  background-position: center center;
+	  background-attachment: fixed;
+	  background-size: 100% auto;
+        }
+      }
+      @media (max-aspect-ratio: 3/2) {
+        body {
+          background-image: var(--back-image-url);
+	  background-repeat: no-repeat;
+	  background-position: center center;
+	  background-attachment: fixed;
+	  background-size: auto 100%;
+        }
+      }
+      body {
+        font-family: ABeeZee;
+	text-align: center;
+      }
+      .main-container {
+        display: flex;
+	justify-content: space-evenly;
+	background-color: rgba(135, 206, 250, 0.3);
+        margin: 30px;
+	padding: 25px;
+      }
+      form {
+      background: rgba(25, 25, 112, 0.6);
+      padding: 20px;
+      text-align: left;
+      }
+      input[type=text], input[type=number], input[type=email], select, textarea {
+        width: 100%;
+        padding: 12px 20px;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+	margin: 10px 0px 16px 0px;
+      }
+      button[type=submit] {
+        width: 100%;
+        background-color: #FF8000;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      label, legend {
+	display: inline-block;
+        color: white;
+      }
+      fieldset {
+      margin-bottom: 15px;
+      }
+    </style>
+    <title>Survey form</title>
+  </head>
+  <body>
+    <h1 id="title" style="color: rgb(25, 25, 112); font-size: 50px; background-color: rgba(255, 128, 0, 0.7); padding: 10px;"> Dream Travels Survey Form</h1>
+    <p id="description" style="color: rgba(25, 25, 112); font-size: 22px">Thank you for helping us improve our service!</p>
+    <main>
+      <div class="main-container">
+        <form id="survey-form" action="/submit-survey">
+          <label for="name" id="name-label">Name:</label>
+	  <input type="text" id="name" name="name" placeholder="Enter your name" required> <br>
+          <label for="email" id="email-label">E-mail:</label>
+	  <input type="email" id="email" name="email" placeholder="Enter your E-mail" required> <br>
+          <label for="number" id="number-label">Age:</label>
+	  <input type="number" id="number" name="number" placeholder="Enter your age" min="6" max="99"> <br>
+
+	  <fieldset>
+            <legend>Would you recommend our service to a friend?:</legend>
+            <input id="one" type="radio" name="items" value="one">
+            <label for="one">Definitely</label><br>
+            <input id="two" type="radio" name="items" value="two">
+            <label for="two">Probably</label><br>
+            <input id="three" type="radio" name="items" value="three">
+	    <label for="three">So-so</label><br>
+            <input id="three" type="radio" name="items" value="four">
+            <label for="three">No way</label>
+          </fieldset>
+
+	  <fieldset>
+            <legend>What is your highest level of education?</legend>
+	    <label for="primary"><input id="primary" type="radio" name="education" value="primary"> Primary school</label> <br>
+	    <label for="vocational"><input id="vocational" type="radio" name="education" value="vocational"> Vocational school</label> <br>
+	    <label for="grammer"><input id="grammer" type="radio" name="education" value="grammer"> Grammer school</label> <br>
+	    <label for="uni"><input id="uni" type="radio" name="education" value="university"> University</label>
+	  </fieldset>
+
+	  <fieldset>
+            <legend>What type of vacation do you prefer?</legend>
+	    <label for="eventful"><input id="eventful" type="checkbox" name="vac-type" value="0"> Eventful</label> <br>
+	    <label for="relaxing"><input id="relaxing" type="checkbox" name="vac-type" value="1"> Relaxing</label> <br>
+	    <label for="beach"><input id="beach" type="checkbox" name="vac-type" value="2"> Beach, sunshine, water-sports</label> <br>
+	    <label for="city"><input id="city" type="checkbox" name="vac-type" value="3"> City breaks, culture, gastronomy</label> <br>
+	    <label for="nature"><input id="natura" type="checkbox" name="vac-type" value="4"> Nature, hiking</label> <br>
+	    <label for="round"><input id="round" type="checkbox" name="vac-type" value="5"> Round-trips</label> <br>
+	    <label for="skii"><input id="skii" type="checkbox" name="vac-type" value="6"> Winter-sports</label> 
+	  </fieldset>
+          
+	  <label for="dropdown">Do you have children?</label> <br>
+	  <select id="dropdown" name="children">
+            <option value="0">Select an option</option>
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+          
+	  <label for="comments">Any comments or suggestions?</label> <br>
+	  <textarea id="comments" name="message" rows="10" cols="30">
+          </textarea>
+
+
+	  <button type="submit" id="submit">Submit</button>
+        </form>
+      </div>	
+    </main>
+  </body>
+
+</html> 
