@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Random Quote Generator</title>  
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href='https://fonts.googleapis.com/css?family=Chilanka' rel='stylesheet'>
+
+    <link rel="stylesheet" type="text/css" href="myStyle.css">
+
+  </head>
+  <body onload="load()">
+    <div id="page" class="page">
+      <div id="quote-box" class="container">
+        <div id="text-container">
+	  <div id="quote-symbol"><i class="fas fa-quote-left"></i></div>
+	  <div id="text">When one door of happiness closes, another opens; but often we look so long at the closed door that we do not see the one which has been opened for us.</div>
+        </div>
+        <div id="author-container">
+	  <div id="author" style="margin-bottom: 15px;"> Helen Keller </div>
+	</div>
+	<div id="buttons-container">
+	  <a id="tweet-quote" href="twitter.com/intent/tweet" style="border-radius: 5px; padding: 2px; font-size: 16px;"><i class="fab fa-twitter fa-2x" style="color: white"></i></a>
+	  <button id="new-quote" type="button" onclick="myQuotes()">New quote</button>
+	</div>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <script src="quotes.js"> </script>
+    <script src="myScripts.js"> </script>
+  </body>
+</html>
