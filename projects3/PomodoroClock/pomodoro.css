@@ -22,7 +22,7 @@ body {
 
 #control-buttons {
   display: grid;
-  grid-template-columns: 1fr 10px 1fr 1fr;	
+  grid-template-columns: 1fr 10px 1fr 1fr;  
   align-items: center;
 }
 
@@ -54,7 +54,7 @@ body {
 
 
 #display {
-  background-color: #e9e2e2;	
+  background-color: #e9e2e2;  
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,7 +64,7 @@ body {
 }
 
 #timer-label {
-	
+  
 }
 
 #time-left {

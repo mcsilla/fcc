@@ -71,9 +71,9 @@ class PadContainer extends React.Component {
 }
 
 class DrumPad extends React.Component {
-	constructor(props) {
-	  super(props);	
-	}
+  constructor(props) {
+    super(props); 
+  }
 
 
 

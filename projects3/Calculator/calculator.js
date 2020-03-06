@@ -22,11 +22,11 @@ class MyCalculator extends React.Component {
     let newButtonSign = event.target.textContent;
     if ( newButtonID == 'clear' ) {
       this.setState(state => ({
-                fullInput: '',
-                input: '0',
-                phase: 0,
-                decimalClickable: true
-                }));
+        fullInput: '',
+        input: '0',
+        phase: 0,
+        decimalClickable: true
+        }));
     }
     else if ( newButtonID == 'equals' ) {
       let exp = this.state.fullInput + Number(this.state.input);
@@ -114,9 +114,9 @@ const CalcButtonsPad = function(props) {
 
 
 class CalcButton extends React.Component {
-	constructor(props) {
-	  super(props);	
-	}
+  constructor(props) {
+    super(props); 
+  }
   render() {
     return e('div', {id: this.props.buttonID, className: "calcButton", onClick: this.props.buttonClicked}, this.props.buttonSign)       
   }

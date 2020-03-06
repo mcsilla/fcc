@@ -42,11 +42,11 @@ textarea {
 }
 
 .headline {
-	display: flex;
-	justify-content: space-between;
-	border-radius: 3px;
-	background-color: #CA1010;
-	color: white;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 3px;
+  background-color: #CA1010;
+  color: white;
   font-size: 20px;
   font-weight: bold;
   height: 30px;
