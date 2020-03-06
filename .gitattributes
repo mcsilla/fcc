@@ -1,0 +1,10 @@
+/projects3/DrumMachine/audio/606-snare2.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-Crash-HD0.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-Kick-TAAADA.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-MidTom-3D7.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-Snare-T0T0SA.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-Snare-TATASA.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/606-cymbal7.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/606-snare1.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-Crash-HD2.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/DrumMachine/audio/909-HiTom-0D0.wav filter=lfs diff=lfs merge=lfs -text
