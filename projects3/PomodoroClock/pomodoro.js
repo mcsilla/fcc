@@ -34,29 +34,33 @@ class Timer extends React.Component {
 
     if (!this.state.counting) {
       if ( elementID == 'break-increment' ) {
-        console.log(elementID);
+        if ( this.state.length[1] < 60 ) {
           this.setState(state => ({
             length: [state.length[0], state.length[1] + 1],
             sec: '00',
                  }));
+        }
       } else if ( elementID == 'break-decrement' ) {   
-        console.log(elementID);
+        if ( this.state.length[1] > 1 ) {
           this.setState(state => ({
             length: [state.length[0], state.length[1] - 1],
             sec: '00',
                  })); 
+        }
       } else if ( elementID == 'session-increment' ) {
-        console.log(elementID);
+        if ( this.state.length[0] < 60 ) {
           this.setState(state => ({
             length: [state.length[0] + 1, state.length[1]],
             sec: '00',
                  })); 
+        }
       } else if ( elementID == 'session-decrement' ) {
-        console.log(elementID);
+        if ( this.state.length[0] > 1 ) {
           this.setState(state => ({
             length: [state.length[0] - 1, state.length[1]],
             sec: '00',
                  })); 
+        }
       } else if ( elementID == 'start_stop' ) {
           console.log(elementID);
           this.setState(state => ({
@@ -90,12 +94,19 @@ class Timer extends React.Component {
 
   if ( elementID == 'reset' ) {
     if (this.state.counting) {
-      clearInterval(myCounter);     
+      clearInterval(myCounter);    
+      playPauseClass = 'fas fa-play'; 
     }
+    myAudio = document.getElementById('beep');
+    if( !myAudio.paused ) {
+      myAudio.pause()
+      myAudio.currentTime = 0;
+      }
 
     this.setState(state => ({
-      min: this.numberToMin(state.length[0]),
+      min: '25',
       sec: '00',
+      length: [25, 5],
       phase: true,
       counting: false,       
     }));    
@@ -133,12 +144,12 @@ class Timer extends React.Component {
             sec: nextSec
                 }));
       }
-      if ( min == '00' && Number(sec) <= 4 && Number(sec) > 1) {
-        myAudio = document.getElementById('last-secs'); 
-          myAudio.play();
-      }
-      if ( min == '00' && Number(sec) == 1 ) {
-        myAudio = document.getElementById('time-end'); 
+      //if ( min == '00' && Number(sec) <= 4 && Number(sec) > 1) {
+      //  myAudio = document.getElementById('last-secs'); 
+      //    myAudio.play();
+      //}
+      myAudio = document.getElementById('beep');
+      if ( min == '00' && Number(sec) == 1 ) { 
           myAudio.play();
       }
     }
@@ -179,7 +190,7 @@ class Timer extends React.Component {
               e('div', {key: 2}, e('i', {id: 'reset', onClick: this.handleClick, className: 'fas fa-sync'}))
         ]),
        e('audio', {key: 4, id: 'last-secs', src: 'audio/microscopic-kick.wav' , className: "clip", type: "audio/wav"}),
-       e('audio', {key: 5, id: 'time-end', src: 'audio/squeaky-clown-horn.wav' , className: "clip", type: "audio/wav"})
+       e('audio', {key: 5, id: 'beep', src: 'audio/squeaky-clown-horn.wav' , className: "clip", type: "audio/wav"})
        ];
   }
 }
