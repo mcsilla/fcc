@@ -8,3 +8,4 @@
 /projects3/DrumMachine/audio/606-snare1.wav filter=lfs diff=lfs merge=lfs -text
 /projects3/DrumMachine/audio/909-Crash-HD2.wav filter=lfs diff=lfs merge=lfs -text
 /projects3/DrumMachine/audio/909-HiTom-0D0.wav filter=lfs diff=lfs merge=lfs -text
+/projects3/PomodoroClock/audio/squeaky-clown-horn.wav filter=lfs diff=lfs merge=lfs -text
