@@ -1,0 +1,189 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset='utf-8' />
+    <title>Bar Chart</title> 
+    <style>
+      #screen {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;   
+        background-color: #ffd480;     
+      }
+      #chartContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        width: fit-content;
+        padding-top: 20px;
+        background-color: #d1d1e0;
+        border: 1px solid navy;
+        border-radius: 4px;
+        box-shadow: 5px 5px 5px navy;
+      }
+      #svgContainer {
+
+      }
+      .tooltip {
+        position: absolute;
+        /*display: none;*/
+        opacity: 0;
+        transition: opacity 1s;
+        background-color: orange;
+        padding: 10px;
+        border: 1px solid navy;
+        border-radius: 3px;
+      }
+      .bar {
+        fill: navy;
+      }
+      .bar:hover {
+        fill: orange;
+      }
+      #title {
+        font-size: 48px;
+      }
+      .tick {
+        color: black;
+      }
+    </style>
+  </head>
+
+<body>
+  <div id = "screen">
+    <div id = "chartContainer">
+      <div id = "title">
+        United States GDP
+      </div>
+      <svg id = "svgContainer" width = "800px" height = "600px">
+        <div id = "tooltip" class = "tooltip">
+        </div>
+      </svg>
+  
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+    var x;
+    var dataset;
+    let requestURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/GDP-data.json';
+    let request = new XMLHttpRequest();
+    request.open("GET", requestURL);
+    request.responseType = 'json';
+    request.send();
+
+    request.onload = function() {
+      const json = request.response;
+      dataset = json.data;    
+
+      const w = 800;
+      const h = 600;
+      const padding = 40;
+      const paddingRight = 40; 
+      const paddingLeft = 60;
+      
+      const barGap = 0.2;
+      const dataLength = dataset.length;
+      const barWidth = (w - 2 * padding - barGap * (dataLength - 1)) / dataLength;
+
+      console.log(barWidth);
+
+      var parser = d3.timeParse("%Y-%m-%d");
+      var dateToString = d3.timeFormat("%Y-%m-%d");
+      
+
+      dataset = dataset.map( (d) => [parser(d[0]), d[1]] );
+
+      console.log(dataset[0][0]);
+
+      const xScale = d3.scaleTime()
+                       .domain(d3.extent(dataset, (d) => d[0]))
+                       .range([paddingLeft, w - paddingRight]);
+
+      const maxGDP = d3.max(dataset, (d) => d[1]);
+
+      const scaleRatio = (h - 2 * padding) / maxGDP;
+
+      const yScale = d3.scaleLinear()
+                       .domain([0, maxGDP])
+                       .range([h - padding, padding]);
+
+
+            function handleMouseOver(d) {  
+              //d3.select(this).attr("fill", "orange");
+              d3.select("#tooltip")
+                                   .style("opacity", "0.8")
+                                   //.style("display", "inline")
+                                   .attr("data-date", event.target.getAttribute("data-date") );
+            }
+
+            function handleMouseMove(d) {
+              let year = 1900 + d[0].getYear();
+              let quarter = d[0].getMonth() / 3 + 1;
+              d3.select("#tooltip")
+                 .text(function() {
+                               return year + ' Q' + quarter + ':\n $' + d[1] + ' Billion';  // Value of the text
+                             })
+                 .style("left", (d3.event.pageX + 20) + "px")
+                 .style("top", 700 + "px");
+            }
+
+          function handleMouseOut(d, i) {
+            //d3.select(this).attr("fill", "navy");
+            
+          //  // Select text by id and then remove
+            d3.select("#tooltip")
+                                 .style("opacity", "0")
+                                 //.style("display", "none")
+                                 .attr("data-date", "none" ); // Remove text location
+          }
+
+      d3.select("#svgContainer").selectAll("rect")
+         .data(dataset)
+         .enter()
+         .append("rect")
+         .attr("x", (d, i) => xScale(d[0]))
+         .attr("y", (d, i) => yScale(d[1]))
+         .attr("width", barWidth)
+         .attr("height", (d, i) => scaleRatio * d[1])
+         .attr("class", "bar")
+         .attr("data-date", (d) => dateToString(d[0]))
+         .attr("data-gdp", (d) => d[1])     
+         .on("mouseover", handleMouseOver)
+         .on("mousemove", handleMouseMove)
+         .on("mouseout", handleMouseOut);
+        
+
+      const xAxis = d3.axisBottom(xScale);
+
+      const yAxis = d3.axisLeft(yScale);
+
+
+      d3.select("#svgContainer").append("g")
+         .attr("id", "x-axis")
+         .attr("transform", "translate(0," + (h - padding) + ")")
+         .call(xAxis);
+         
+
+      d3.select("#svgContainer").append("g")
+         .attr("id", "y-axis")
+         .attr("transform", "translate(" + paddingLeft + ", 0)")
+         .call(yAxis);
+
+      d3.select("#svgContainer").append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", paddingLeft + 10)
+      .attr("x", -350)
+      .attr("dy", "1em")
+      //.style("text-anchor", "middle")
+      .text("Gross Domestic Product ($ Bn)");
+
+    }
+
+  </script>
+   <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+</body>
