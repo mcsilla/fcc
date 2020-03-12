@@ -1,0 +1,287 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset='utf-8' />
+    <title>Scatterplot Graph</title> 
+    <style>
+      #screen {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;   
+        background-color: #ffd480;     
+      }
+      #chartContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        width: fit-content;
+        padding-top: 20px;
+        background-color: white;
+        border: 1px solid navy;
+        border-radius: 4px;
+        box-shadow: 5px 5px 5px navy;
+      }
+      #svgContainer {
+
+      }
+      .tooltip {
+        position: absolute;
+        /*display: none;*/
+        opacity: 0;
+        transition: opacity 1s;
+        background-color: orange;
+        padding: 10px;
+        border: 1px solid navy;
+        border-radius: 3px;
+      }
+      #title {
+        text-align: center;
+      }
+      .dot {
+        fill-opacity: 0.4;
+        stroke-opacity: 1;
+      }
+    </style>
+  </head>
+
+<body>
+  <div id = "screen">
+    <div id = "chartContainer">
+      <div id = "title">
+        <h1>Doping in Professional Bicycle Racing</h1>
+        <h2>35 Fastest times up Alpe d'Huez</h2>
+      </div>
+      <svg id = "svgContainer" width = "800px" height = "600px">
+        <div id = "tooltip" class = "tooltip">
+          <div id = "name"></div>
+          <div id = "year"></div>
+          <div id = "dopping"></div>
+        </div>
+      </svg>
+  
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+
+    let requestURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json';
+
+    var stringToDateY = d3.timeParse("%M:%S");
+    var stringToDateX = d3.timeParse("%Y")
+    var dateToString = d3.timeFormat("%M:%S");
+
+    function makeRequest(method, url) {
+      return new Promise(function (resolve, reject) {
+        let xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.responseType = 'json';
+        xhr.onload = function () {
+          if (this.status >= 200 && this.status < 300) {
+            resolve(xhr.response);
+          } else {
+            reject({
+              status: this.status,
+              statusText: xhr.statusText
+            });
+          }
+        };
+        xhr.onerror = function () {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        };
+        xhr.send();
+      });
+    }
+
+    const collectingData = async url => {
+      return makeRequest("GET", url);
+    }
+
+    function handleMouseOver(d, xScale, yScale) {  
+              d3.select(svgContainer).append("circle")
+                                     .attr("cx", xScale(stringToDateX(d.Year)))
+                                     .attr("cy", yScale(stringToDateY(d.Time)))
+                                     .attr("r", 8)
+                                     .attr("opacity", 1)
+                                     .attr("pointer-events", "none")
+                                     .attr("id", "mouseHere")
+                                     .attr("fill", event.target.getAttribute("fill"));
+              d3.select("#tooltip")
+                .style("left", (d3.event.pageX + 20) + "px")
+                .style("top", (d3.event.pageY + 20) + "px")
+                .style("opacity", "0.8");
+              d3.select("#name")
+                .text(function() {
+                               return d.Name + ', ' + d.Nationality;  // Value of the text
+                             });
+              d3.select("#year")
+                .text(function() {
+                               return "Year: " + d.Year + ', ' + 'Time: ' + d.Time;  // Value of the text
+                             });
+              d3.select("#dopping")
+                .text(function() {
+                               return d.Doping;  // Value of the text
+                             });
+                                   //.style("display", "inline")
+                                   //.attr("data-date", event.target.getAttribute("data-date") );
+            }
+
+
+    function handleMouseOut(d, i) {
+          
+          d3.select("#mouseHere").remove();
+         // d3.select(this).attr("r", 6)
+          //               .attr("opacity", 0.6);
+          d3.select("#tooltip")
+            .style("opacity", "0");
+                                 //.style("display", "none")
+                                 //.attr("data-date", "none" ); // Remove text location
+    }
+
+    function handleMouseOverRect() {
+      let thisFillColor = event.target.getAttribute("fill");
+      console.log(thisFillColor);
+      d3.selectAll(".dot")
+        .style("fill-opacity", (d, i) => {
+          if ( (d.Doping == "" && thisFillColor == "orange") || (d.Doping != "" && thisFillColor == "blue") ) {
+            return 1;
+          } else {
+            return 0.4;
+          }
+        })
+        .attr("r", (d, i) => {
+          if ( (d.Doping == "" && thisFillColor == "orange") || (d.Doping != "" && thisFillColor == "blue") ) {
+            return 8;
+          } else {
+            return 6;
+          }
+        }); 
+                          
+    }
+
+    function handleMouseOutRect() {
+      d3.selectAll(".dot").style("fill-opacity", 0.4)
+                          .attr("r", 6);
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      let rawData = await collectingData(requestURL);
+
+      let svgWidth = 800;
+      let svgHeight = 600;
+      let paddingLeft = 70;
+      let padding = 30;
+
+      let maxYear = d3.max(rawData, (d) => d.Year);
+      let minYear = d3.min(rawData, (d) => d.Year);
+
+      //console.log(maxYear - 1);
+
+      
+
+      const xScale = d3.scaleTime()
+                       .domain([stringToDateX(minYear - 1), stringToDateX(maxYear + 1)])
+                       .range([paddingLeft, svgWidth - padding]);
+
+
+
+      const yScale = d3.scaleTime()
+                       .domain(d3.extent(rawData, (d) => stringToDateY(d.Time)))
+                       .range([padding, svgHeight - padding]);
+
+      d3.select("#svgContainer").selectAll("circle")
+        .data(rawData)
+        .enter()
+        .append("circle")
+        .attr("cx", (d, i) => xScale(stringToDateX(d.Year)))
+        .attr("cy", (d, i) => yScale(stringToDateY(d.Time)))
+        .attr("r", 6)
+        .attr("fill", (d, i) => {
+          if (d.Doping == "") {
+            return "Orange";
+          } else {
+            return "Blue";
+          }
+        })
+        .attr("class", "dot")
+        .style("stroke", (d, i) => {
+          if (d.Doping == "") {
+            return "Orange";
+          } else {
+            return "Blue";
+          }
+        })
+        .on("mouseover", d => handleMouseOver(d, xScale, yScale))
+        //.on("mousemove", d => handleMouseMove(d, xScale, yScale))
+        .on("mouseout", handleMouseOut);
+     
+      const xAxis = d3.axisBottom(xScale);
+
+      const yAxis = d3.axisLeft(yScale);
+                      //.ticks(10) //10 tick lesz
+                      //.tickValues(rawData.map(d => stringToDateY(d.Year))); //a megadott értékeknél lesz tick
+
+
+      d3.select("#svgContainer").append("g")
+         .attr("id", "x-axis")
+         .attr("transform", "translate(0," + (svgHeight - padding) + ")")
+         .call(xAxis);
+         
+
+      d3.select("#svgContainer").append("g")
+         .attr("id", "y-axis")
+         .attr("transform", "translate(" + paddingLeft + ", 0)")
+         .call(yAxis.tickFormat(d3.timeFormat("%M:%S")));
+
+
+      //blue rect
+      d3.select("#svgContainer").append("rect")
+         .attr("x", svgWidth * 2 / 3)
+         .attr("y", 60 )
+         .attr("width", 20)
+         .attr("height", 20)
+         .attr("fill", "blue")
+         .on("mouseover", handleMouseOverRect)
+         .on("mouseout", handleMouseOutRect);
+
+      //blue rect text
+      d3.select("#svgContainer").append("text")
+         .attr("x", svgWidth * 2 / 3 + 30)
+         .attr("y", 75 )
+         .text("No doping allegations");
+
+      //orange rect
+      d3.select("#svgContainer").append("rect")
+         .attr("x", svgWidth * 2 / 3)
+         .attr("y", 100 )
+         .attr("width", 20)
+         .attr("height", 20)
+         .attr("fill", "orange")
+         .on("mouseover", handleMouseOverRect)
+         .on("mouseout", handleMouseOutRect);
+
+      //orange rect text
+      d3.select("#svgContainer").append("text")
+         .attr("x", svgWidth * 2 / 3 + 30)
+         .attr("y", 115)
+         .text("Riders with doping allegations");
+
+      d3.select("#svgContainer").append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 10)
+        .attr("x", -350)
+        .attr("dy", "1em")
+        .text("Time in minutes");
+    });
+   
+
+
+  </script>
+  <!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+</body>
