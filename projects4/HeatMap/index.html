@@ -1,0 +1,200 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta charset='utf-8' />
+    <title>Heat Map</title> 
+    <style>
+      #screen {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;   
+        background-color: #ffd480;     
+      }
+      #chartContainer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        width: fit-content;
+        padding-top: 20px;
+        background-color: white;
+        border: 1px solid navy;
+        border-radius: 4px;
+        box-shadow: 5px 5px 5px navy;
+      }
+      #svgContainer {
+        width: 1500px;
+        height: 800px;
+      }
+      .tooltip {
+        position: absolute;
+        /*display: none;*/
+        opacity: 0;
+        transition: opacity 1s;
+        background-color: orange;
+        padding: 10px;
+        border: 1px solid navy;
+        border-radius: 3px;
+      }
+      #titleDiv {
+        text-align: center;
+      }
+      .cell {
+      }
+    </style>
+  </head>
+
+<body>
+  <div id = "screen">
+    <div id = "chartContainer">
+      <div id = "titleDiv">
+        <h1 id = "title">Monthly Global Land-Surface Temperature</h1>
+        <h2 id = "description">1753 - 2015: base temperature 8.66℃</h2>
+      </div>
+      <svg id = "svgContainer">
+        <div id = "tooltip" class = "tooltip">
+          <div id = "date"></div>
+          <div id = "max"></div>
+          <div id = "min"></div>
+        </div>
+      </svg>
+  
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+
+    let requestURL = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json';
+    let colors = ["hsl(219, 100%, 18%)", "hsl(219, 100%, 28%)", "hsl(219, 100%, 38%)", "hsl(219, 100%, 48%)", "hsl(219, 100%, 58%)", "hsl(212, 100%, 58%)", "hsl(205, 100%, 58%)", "hsl(198, 100%, 58%)", "hsl(190, 100%, 58%)", "hsl(180, 100%, 58%)", "hsl(166, 100%, 58%)", "hsl(155, 100%, 58%)", "hsl(138, 100%, 58%)", "hsl(81, 100%, 58%)", "hsl(63, 100%, 58%)", "hsl(49, 100%, 58%)", "hsl(43, 100%, 58%)", "hsl(34, 100%, 58%)", "hsl(28, 100%, 58%)", "hsl(20, 100%, 58%)", "hsl(14, 100%, 58%)", "hsl(8, 100%, 58%)", "hsl(8, 100%, 45%)", "hsl(8, 100%, 38%)", "hsl(8, 100%, 30%)", "hsl(8, 100%, 25%)", "hsl(8, 100%, 20%)"];
+
+    let numOfColors = colors.length;
+
+    var stringToDateY = d3.timeParse("%M:%S");
+    var stringToDateX = d3.timeParse("%Y")
+    var dateToString = d3.timeFormat("%M:%S");
+
+    function makeRequest(method, url) {
+      return new Promise(function (resolve, reject) {
+        let xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.responseType = 'json';
+        xhr.onload = function () {
+          if (this.status >= 200 && this.status < 300) {
+            resolve(xhr.response);
+          } else {
+            reject({
+              status: this.status,
+              statusText: xhr.statusText
+            });
+          }
+        };
+        xhr.onerror = function () {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        };
+        xhr.send();
+      });
+    }
+
+    const collectingData = async url => {
+      return makeRequest("GET", url);
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      let legendSidePadding = 10;
+      let legendRectWidth = 30;
+      let legendRectHeight = 30;
+      let w = numOfColors * legendRectWidth + 2 * legendSidePadding; //width of #legendSVG
+      let h = 50; //height of #legendSVG
+
+      let chartBottomPadding = 50;
+      let chartLeftPadding = 80;
+
+      let W = 1200; //width of #chartSVG
+      let H = 500; //height of #chartSVG
+
+
+      let rawData = await collectingData(requestURL);
+
+      let chartGroup = d3.select("#svgContainer").append("g");
+      let legendGroup = d3.select("#svgContainer").append("g");
+
+      let minTemp = 8.66 + d3.min(rawData.monthlyVariance, d => d.variance);
+      let maxTemp = 8.66 + d3.max(rawData.monthlyVariance, d => d.variance);
+
+      let minYear = d3.min(rawData.monthlyVariance, d => d.year);
+      let maxYear = d3.max(rawData.monthlyVariance, d => d.year);
+
+      let chartRectWidth = W / (maxYear + 1 - minYear);
+      let chartRectHeight = H / 12;
+
+      const chartXScale = d3.scaleLinear()
+                            .domain([minYear, maxYear + 1])
+                            .range([0, W]);
+      const chartYScale = d3.scaleLinear()
+                            .domain([0, 12])
+                            .range([0, H]);
+      const legendScale = d3.scaleLinear()
+                            .domain([minTemp, maxTemp])
+                            .range([0, numOfColors * legendRectWidth]);
+
+      const legendScaleInv = d3.scaleLinear()
+                               .domain([0, numOfColors * legendRectWidth])
+                               .range([minTemp, maxTemp]);
+
+      let ticksPositions = [];
+      for (let i = 0; i < 28; i++) {
+        ticksPositions.push(legendScaleInv(i * legendRectWidth));
+      }
+
+
+      
+
+      chartGroup.append("svg")
+                .attr("id", "chartSVG")
+                .attr("width", W)
+                .attr("height", H)
+                .selectAll("rect")
+                           .data(rawData.monthlyVariance)
+                           .enter()
+                           .append("rect")
+                           .attr("x", (d, i) => chartLeftPadding + chartXScale(d.year))
+                           .attr("y", (d, i) => chartYScale(d.month - 1))
+                           .attr("width", chartRectWidth)
+                           .attr("height", chartRectHeight)
+                           .attr("fill", (d) => colors.filter((color, i) => (ticksPositions[i] <= d.variance + 8.66) && (ticksPositions[i+1] > d.variance + 8.66)));
+
+      const legendAxis = d3.axisBottom(legendScale)
+                           .ticks(28)
+                           .tickValues(ticksPositions);
+
+       legendGroup.append("svg")
+                  .attr("id", "legendSVG")
+                  .attr("width", w)
+                  .attr("height", h)
+                  .attr("y", H + chartBottomPadding)
+                  .selectAll("rect")
+                             .data(colors)
+                             .enter()
+                             .append("rect")
+                             .attr("x", (d, i) => legendSidePadding + i*legendRectWidth)
+                             .attr("y", 0)
+                             .attr("width", legendRectWidth)
+                             .attr("height", legendRectHeight)
+                             .attr("fill", d => d);
+       d3.select("#legendSVG").append("g")
+           .attr("id", "legendAxis")
+           .attr("transform", "translate(" + legendSidePadding + ", 30)")
+           .call(legendAxis);
+
+
+    });
+
+  </script>
+  <!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+</body>

@@ -115,7 +115,8 @@
               d3.select("#tooltip")
                 .style("left", (d3.event.pageX + 20) + "px")
                 .style("top", (d3.event.pageY + 20) + "px")
-                .style("opacity", "0.8");
+                .style("opacity", "0.8")
+                .attr("data-year", event.target.getAttribute("data-xvalue"));
               d3.select("#name")
                 .text(function() {
                                return d.Name + ', ' + d.Nationality;  // Value of the text
@@ -146,7 +147,6 @@
 
     function handleMouseOverRect() {
       let thisFillColor = event.target.getAttribute("fill");
-      console.log(thisFillColor);
       d3.selectAll(".dot")
         .style("fill-opacity", (d, i) => {
           if ( (d.Doping == "" && thisFillColor == "orange") || (d.Doping != "" && thisFillColor == "blue") ) {
@@ -181,10 +181,6 @@
       let maxYear = d3.max(rawData, (d) => d.Year);
       let minYear = d3.min(rawData, (d) => d.Year);
 
-      //console.log(maxYear - 1);
-
-      
-
       const xScale = d3.scaleTime()
                        .domain([stringToDateX(minYear - 1), stringToDateX(maxYear + 1)])
                        .range([paddingLeft, svgWidth - padding]);
@@ -217,6 +213,8 @@
             return "Blue";
           }
         })
+        .attr("data-xvalue", d => d.Year)
+        .attr("data-yvalue", d => stringToDateY(d.Time))
         .on("mouseover", d => handleMouseOver(d, xScale, yScale))
         //.on("mousemove", d => handleMouseMove(d, xScale, yScale))
         .on("mouseout", handleMouseOut);
@@ -239,9 +237,10 @@
          .attr("transform", "translate(" + paddingLeft + ", 0)")
          .call(yAxis.tickFormat(d3.timeFormat("%M:%S")));
 
-
+      let legendGroup = d3.select("#svgContainer").append("g")
+                                                  .attr("id", "legend");
       //blue rect
-      d3.select("#svgContainer").append("rect")
+      legendGroup.append("rect")
          .attr("x", svgWidth * 2 / 3)
          .attr("y", 60 )
          .attr("width", 20)
@@ -251,13 +250,13 @@
          .on("mouseout", handleMouseOutRect);
 
       //blue rect text
-      d3.select("#svgContainer").append("text")
+      legendGroup.append("text")
          .attr("x", svgWidth * 2 / 3 + 30)
          .attr("y", 75 )
          .text("No doping allegations");
 
       //orange rect
-      d3.select("#svgContainer").append("rect")
+      legendGroup.append("rect")
          .attr("x", svgWidth * 2 / 3)
          .attr("y", 100 )
          .attr("width", 20)
@@ -267,7 +266,7 @@
          .on("mouseout", handleMouseOutRect);
 
       //orange rect text
-      d3.select("#svgContainer").append("text")
+      legendGroup.append("text")
          .attr("x", svgWidth * 2 / 3 + 30)
          .attr("y", 115)
          .text("Riders with doping allegations");
@@ -283,5 +282,5 @@
 
 
   </script>
-  <!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+  <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
 </body>
