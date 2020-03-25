@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+path {
+  fill: none;
+  stroke: #777;
+  stroke-width: .5px;
+  stroke-opacity: .5;
+}
+#title {
+  text-align: center;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0; 
+  left: 0;
+  margin: 0;
+}
+#tooltip {
+  display: none;
+  position: absolute;
+  border: 1px solid blue;
+  border-radius: 4px;
+  background-color: rgba(255, 244, 122, 0.4);
+  padding: 10px;
+  font-size: 20px;
+}
+#svgContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+</style>
+<body>
+  <div id = "screen">
+    <div id = "chartContainer">
+      <div id = "title">
+        <h1>United States Educational Attainment</h1>
+        <h2>Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h2>
+      </div>
+      <svg id = "svgContainer" width = "1400px" height = "900px">
+        <div id = "tooltip" class = "tooltip">
+          <div id = "nameOfCounty"></div>
+          <div id = "dataOfCounty"></div>
+        </div>
+      </svg>
+  
+    </div>
+  </div>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<!-- <script src="d3.v5.js"></script> -->
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 1400,
+    height = 900;
+
+
+var urlUSCounties = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+
+
+var path = d3.geoPath();
+
+d3.json(urlUSCounties).then(function(topology) {
+  var geojson = topojson.feature(topology, topology.objects.counties);
+
+  var b = path.bounds(geojson);
+  var s = .9 / Math.max((b[1][0] - b[0][0]) / width, 
+(b[1][1] - b[0][1]) / height); 
+  var t = [(width - s * (b[1][0] + b[0][0])) / 2, 
+(height - s * (b[1][1] + b[0][1])) / 2];    
+
+  console.log(s, t);       
+
+  let map = d3.select("#svgContainer").append("g");
+
+
+  map.selectAll("path")
+     .data(geojson.features)
+     .enter().append("path")
+     .attr("d", path)
+     .attr("transform", "scale(" + s + ") translate(" + t + ")");
+
+
+});
+
+</script>

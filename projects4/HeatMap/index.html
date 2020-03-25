@@ -153,6 +153,8 @@
     document.addEventListener("DOMContentLoaded", async function () {
       let rawData = await collectingData(requestURL);
 
+      let yearsArray = rawData.monthlyVariance.filter(yearData => yearData.month == 1).map(yearData => yearData.year);
+
       let minTemp = 8.66 + d3.min(rawData.monthlyVariance, d => d.variance);
       let maxTemp = 8.66 + d3.max(rawData.monthlyVariance, d => d.variance);
 
@@ -162,8 +164,8 @@
       let chartRectWidth = W / (maxYear + 1 - minYear);
       let chartRectHeight = H / 12;
 
-      const chartXScale = d3.scaleLinear()
-                            .domain([minYear - 0.5, maxYear + 0.5])
+      const chartXScale = d3.scaleBand()
+                            .domain(yearsArray)
                             .range([0, W]);
       const chartYScale = d3.scaleLinear()
                             .domain([0, 12])
@@ -186,14 +188,11 @@
         ticksPositionsChartY.push(0.5 + i);
       }
 
-      let ticksPositionsChartX = [];
-      for (let i = 0; i < maxYear + 1 - minYear; i++) {
-        ticksPositionsChartX.push(minYear + 0.5 + i);
-      }
+      let ticksPositionChartX = yearsArray.filter(year => year % 10 == 0);
 
       const chartXAxis = d3.axisBottom(chartXScale)
-                           .ticks(26);
-                           //.tickValues(ticksPositionsChartX);
+                           //.ticks(26)
+                           .tickValues(ticksPositionChartX);
 
       const chartYAxis = d3.axisLeft(chartYScale)
                            .tickValues(ticksPositionsChartY)
@@ -207,9 +206,9 @@
                            .data(rawData.monthlyVariance)
                            .enter()
                            .append("rect")
-                           .attr("x", (d, i) => chartLeftPadding + chartXScale(d.year - 0.5))
+                           .attr("x", (d, i) => chartLeftPadding + chartXScale(d.year))
                            .attr("y", (d, i) => chartYScale(d.month - 1) + chartTopPadding)
-                           .attr("width", chartRectWidth)
+                           .attr("width", chartXScale.bandwidth())
                            .attr("height", chartRectHeight)
                            .attr("fill", (d) => colors.filter((color, i) => (ticksPositions[i] <= d.variance + 8.66) && (ticksPositions[i+1] > d.variance + 8.66)))
                            .attr("data-month", (d) => d.month - 1)
