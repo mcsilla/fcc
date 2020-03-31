@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+#header {
+  text-align: center;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tooltip {
+  display: none;
+  position: absolute;
+  border: 1px solid blue;
+  border-radius: 4px;
+  background-color: rgba(255, 244, 122, 0.6);
+  padding: 10px;
+  font-size: 20px;
+  text-align: center;
+}
+#svgContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#legend {
+  /*fill: linear-gradient(to right, hsl(227, 100%, 8%), hsl(227, 100%, 98%));*/
+}
+.tile {
+
+}
+.texts {
+
+}
+
+</style>
+<body>
+  <div id = "screen">
+    <div id = "chartContainer">
+      <div id = "header">
+        <h1 id = "title">Movie Sales</h1>
+        <h2 id = "description">Top 95 Most Sold Movies Grouped by Cathegory</h2>
+      </div>
+      <div id = "svgContainer" width = "1400px" height = "900px">
+        <div id = "tooltip" class = "tooltip">
+          <div id = "state"></div>
+          <div id = "county"></div>
+          <div id = "data"></div>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<!-- <script src="d3.v5.js"></script> -->
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 1200,
+    height = 600,
+    margin = {top: 10, right: 10, bottom: 10, left: 10};
+
+var svg = d3.select("#svgContainer")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+var table = svg.append("g")
+               .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var defs = svg.append("defs");
+
+
+
+var urlMovies = "https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/movie-data.json";
+
+var legendWidth = 600;
+var legendHeight = 40;
+var legendSideMargins = 20;
+var textSize = 10;
+
+function horTextLengthPXs(text, textsize) {
+    if (!d3) return;
+    var container = d3.select('body').append('svg');
+    container.append('text')
+             .attr( "x", -99999)
+             .attr("y", -99999 )
+             .text(text)
+             .attr("font-size", textsize + "px");
+    var size = container.node().getBBox();
+    container.remove();
+    return size.width;
+}
+
+function vertTextLengthPXs(text, textsize) {
+    if (!d3) return;
+    var container = d3.select('body').append('svg');
+    container.append('text')
+             .attr( "x", -99999)
+             .attr("y", -99999 )
+             .text(text)
+             .attr("font-size", textsize + "px")
+             .attr("transform", "rotate(270)");
+    var size = container.node().getBBox();
+    container.remove();
+    return size.height;
+}
+
+//console.log(vertTextLengthPXs("Ez egy hosszu szoveg", 10));
+//console.log(horTextLengthPXs("Ez egy hosszu szoveg", 10));
+
+
+function handleMouseOver(d) {              
+
+        }
+function handleMouseOut(d, i) {
+
+}
+
+
+document.addEventListener("DOMContentLoaded", async function () {
+  //let  = d3.select("#svgContainer").append("g");
+
+  let data = await d3.json(urlMovies);
+  let root = d3.hierarchy(data).sum(function(d){return d.value});
+
+  d3.treemap()
+    .size([width, height])
+    .padding(2)
+    (root)
+  
+  let colorStep = 360 / root.children.length;
+
+  let colorsByCathegory = {};
+  root.children.forEach((child, i) => colorsByCathegory[child.data.name] = "hsl(" + i * colorStep + ", 80%, 65%)");
+  
+  //console.log(colorsByCathegory);
+
+  let horGrads = defs.append("g");
+  let vertGrads = defs.append("g");
+
+  horGrads.selectAll("linearGradient")
+      .data(root.leaves())
+      .enter()
+      .append("linearGradient")
+      .attr("class", "horizontalGrad")
+      .attr("id", (d, i) => "svgGradientHorizontal-" + i)
+      .attr("x1", (d, i) => {
+        var boxWidth = d.x1 - d.x0;
+        var boxHeight = d.y1 - d.y0;
+        if (boxHeight > boxWidth) {
+          return "50%";
+        } else {
+          return "0%";
+        }
+      })
+      .attr("x2", (d, i) => {
+        var boxWidth = d.x1 - d.x0;
+        var boxHeight = d.y1 - d.y0;
+        if (boxHeight > boxWidth) {
+          return "50%";
+        } else {
+          return "100%";
+        }
+      })
+      .attr("y1", (d, i) => {
+        var boxWidth = d.x1 - d.x0;
+        var boxHeight = d.y1 - d.y0;
+        if (boxHeight > boxWidth) {
+          return "0%";
+        } else {
+          return "50%";
+        }
+      })
+      .attr("y2", (d, i) => {
+        var boxWidth = d.x1 - d.x0;
+        var boxHeight = d.y1 - d.y0;
+        if (boxHeight > boxWidth) {
+          return "100%";
+        } else {
+          return "50%";
+        }
+      })
+      .append("stop")
+        .attr('class', 'start')
+        .attr("offset", (d, i) => {
+          var boxWidth = d.x1 - d.x0;
+          var boxHeight = d.y1 - d.y0;
+          if (boxHeight > boxWidth) {
+            var freeSpace = boxHeight;
+            var textWidth = vertTextLengthPXs(d.data.name, textSize);
+          } else {
+            var freeSpace = boxWidth;
+            var textWidth = horTextLengthPXs(d.data.name, textSize);
+          }
+          var percent = (100 * freeSpace) / textWidth;
+          if (percent >= 100) {return "100%";}
+          else {return percent - 10 + "%";}
+        })
+        .attr("stop-color", "black")
+        .attr("stop-opacity", 1);
+
+  d3.selectAll(".horizontalGrad")
+        .append("stop")
+        .attr('class', 'end')
+        .attr("offset", (d, i) => {
+          var boxWidth = d.x1 - d.x0;
+          var boxHeight = d.y1 - d.y0;
+          if (boxHeight > boxWidth) {
+            var freeSpace = boxHeight;
+            var textWidth = vertTextLengthPXs(d.data.name, textSize);
+          } else {
+            var freeSpace = boxWidth;
+            var textWidth = horTextLengthPXs(d.data.name, textSize);
+          }
+          var percent = (100 * freeSpace) / textWidth;
+          if (percent >= 100) {return "100%";}
+          else {return percent - 3 + "%";}
+        })
+        .attr("stop-color", "black")
+        .attr("stop-opacity", 0);
+
+
+
+
+  table
+    .selectAll("rect")
+    .data(root.leaves())
+    .enter()
+    .append("rect")
+      .attr('x', function (d) { return d.x0; })
+      .attr('y', function (d) { return d.y0; })
+      .attr('width', function (d) { return d.x1 - d.x0; })
+      .attr('height', function (d) { return d.y1 - d.y0; })
+      .style("stroke", "black")
+      .style("fill", (d) => colorsByCathegory[d.data.category])
+      .attr("class", "tile");
+  
+  var texts = svg.append("g")
+                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+
+  texts
+    .selectAll("text")
+    .data(root.leaves())
+    .enter()
+    .append("text")
+      .attr("x", function(d){ return d.x0 + 5}) 
+      .attr("y", function(d){ return d.y0 + 15}) 
+      //.attr("width", d => d.x1 - d.x0) 
+      //.attr("height", d => d.y1 - d.y0)
+      .attr("class", "texts")
+      .text(function(d){ return d.data.name })
+      .attr("font-size", textSize + "px")
+      .attr("transform", function(d,i){
+        var boxWidth = d.x1 - d.x0;
+        var boxHeight = d.y1 - d.y0;
+        if (boxHeight > boxWidth) {
+          return "rotate(90, "+ (d.x0 + 5) + ", " + (d.y0 + 15) + ")";
+        } else {
+        return "rotate(0)";
+        }
+      })
+      .attr("fill", (d, i) => {
+        return "url(#svgGradientHorizontal-"+ i + ")";
+      });
+        //.call(wrap, );
+
+
+});
+
+</script>
+<!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+</body>

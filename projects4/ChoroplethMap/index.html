@@ -2,13 +2,12 @@
 <meta charset="utf-8">
 <style>
 
-path {
-  fill: none;
+.county {
   stroke: #777;
   stroke-width: .5px;
   stroke-opacity: .5;
 }
-#title {
+#header {
   text-align: center;
 }
 
@@ -28,28 +27,33 @@ body {
   position: absolute;
   border: 1px solid blue;
   border-radius: 4px;
-  background-color: rgba(255, 244, 122, 0.4);
+  background-color: rgba(255, 244, 122, 0.6);
   padding: 10px;
   font-size: 20px;
+  text-align: center;
 }
 #svgContainer {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+#legend {
+  /*fill: linear-gradient(to right, hsl(227, 100%, 8%), hsl(227, 100%, 98%));*/
+}
 
 </style>
 <body>
   <div id = "screen">
     <div id = "chartContainer">
-      <div id = "title">
-        <h1>United States Educational Attainment</h1>
-        <h2>Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h2>
+      <div id = "header">
+        <h1 id = "title">United States Educational Attainment</h1>
+        <h2 id = "description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h2>
       </div>
       <svg id = "svgContainer" width = "1400px" height = "900px">
         <div id = "tooltip" class = "tooltip">
-          <div id = "nameOfCounty"></div>
-          <div id = "dataOfCounty"></div>
+          <div id = "state"></div>
+          <div id = "county"></div>
+          <div id = "data"></div>
         </div>
       </svg>
   
@@ -65,31 +69,146 @@ var width = 1400,
 
 
 var urlUSCounties = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+var urlEdu = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json";
+
+var legendWidth = 600;
+var legendHeight = 40;
+var legendSideMargins = 20;
 
 
 var path = d3.geoPath();
 
-d3.json(urlUSCounties).then(function(topology) {
-  var geojson = topojson.feature(topology, topology.objects.counties);
+function handleMouseOver(d) {              
+          d3.select("#state")
+            .text(function() {
+                           return event.target.getAttribute("state");  // Value of the text
+                         });
+          d3.select("#county")
+            .text(function() {
+                           return event.target.getAttribute("county");  // Value of the text
+                         });
+          d3.select("#data")
+            .text(function() {
+                           return event.target.getAttribute("data-education") + "%";  // Value of the text
+                         });
+          // var toolTip = document.getElementById("tooltip"); // Do not use #
+          // let currWidth = toolTip.offsetWidth;
+          // let currHeight = toolTip.offsetHeight;
+          d3.select("#tooltip")
+            .style("left", (d3.event.pageX + 20) + "px")
+            .style("top", (d3.event.pageY - 80) + "px")
+            .style("display", "inline")
+            //.style("opacity", 0.8)
+            .attr("data-education", event.target.getAttribute("data-education"));
+        }
+function handleMouseOut(d, i) {
+      d3.select("#tooltip")
+        .style("display", "none");
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+  let map = d3.select("#svgContainer").append("g");
+
+  let topology = await d3.json(urlUSCounties);
+  let geojson = topojson.feature(topology, topology.objects.counties);
 
   var b = path.bounds(geojson);
   var s = .9 / Math.max((b[1][0] - b[0][0]) / width, 
-(b[1][1] - b[0][1]) / height); 
+                        (b[1][1] - b[0][1]) / height); 
   var t = [(width - s * (b[1][0] + b[0][0])) / 2, 
-(height - s * (b[1][1] + b[0][1])) / 2];    
-
-  console.log(s, t);       
-
-  let map = d3.select("#svgContainer").append("g");
-
+           (height - s * (b[1][1] + b[0][1])) / 2];   
 
   map.selectAll("path")
      .data(geojson.features)
      .enter().append("path")
      .attr("d", path)
-     .attr("transform", "scale(" + s + ") translate(" + t + ")");
+     .attr("transform", "scale(" + s + ") translate(" + t + ")")
+     .attr("data-fips", d => d.id)
+     .attr("class", "county")
+     .attr("fill", "none");
 
+  let eduData = await d3.json(urlEdu);
+  let eduDataById = {};
+  eduData.forEach(county => {
+    eduDataById[county.fips] = {"state": county.state, "area_name": county.area_name, "bachelorsOrHigher": county.bachelorsOrHigher};
+  });
+
+  let maxEdu = d3.max(eduData, county => county.bachelorsOrHigher);
+  let minEdu = d3.min(eduData, county => county.bachelorsOrHigher);
+
+  let scaleMapColors = d3.scaleLinear()
+                         .domain([minEdu, maxEdu])
+                         .range([98, 8]);
+
+  let invScaleMapColors = d3.scaleLinear()
+                            .domain([98, 8])
+                            .range([minEdu, maxEdu]);
+
+  let scaleLegend = d3.scaleBand()
+                      .domain(d3.range(8, 99, 1))
+                      .range([legendWidth, 0]);
+
+  let ticksPositions = [];
+      for (let i = 0; i < 11; i++) {
+        ticksPositions.push(8 + 9 * i);
+      }
+
+  const legendAxis = d3.axisBottom(scaleLegend)
+                       //.ticks(12);
+                       .tickValues(ticksPositions)
+                       .tickFormat((d) => invScaleMapColors(d).toFixed(1) + "%");
+
+  let legendGroup = d3.select("#svgContainer").append("g")
+                                              .attr("id", "legend");
+  legendGroup.append("svg")
+             .attr("id", "legendSVG")
+             .selectAll("rect")
+             .data(d3.range(8, 99, 1))
+             .enter()
+             .append("rect")
+             .attr("x", d => legendSideMargins + scaleLegend(d))
+             .attr("y", 0)
+             .attr("width", scaleLegend.bandwidth())
+             .attr("height", 30)
+             .attr("fill", d => "hsl(227, 100%," + d + "%)");
+
+  var lineData = [ 
+  { "x": legendSideMargins, "y": 0},  
+  { "x": legendSideMargins, "y": 30},
+  { "x": legendSideMargins + legendWidth,  "y": 30}, 
+  { "x": legendSideMargins + legendWidth,  "y": 0},
+  { "x": legendSideMargins, "y": 0}
+  ];
+
+  lineFunction = d3.line()
+                     .x(function(d) { return d.x; })
+                     .y(function(d) { return d.y; })
+                     .curve(d3.curveLinear);
+
+  d3.select("#legendSVG").append("path")
+                         .attr("d", lineFunction(lineData))
+                         .attr("stroke", "black")
+                         .attr("stroke-width", 1)
+                         .attr("fill", "none");
+
+  d3.select("#legendSVG").append("g")
+           .attr("id", "legendAxis")
+           .attr("transform", "translate(" + legendSideMargins + ", 30)")
+           .call(legendAxis)
+           .selectAll("text")
+           .style("font-size","14px");
+
+  map.selectAll("path").each(function(d,i) {
+     d3.select(this).attr("data-education", eduDataById[d3.select(this).attr("data-fips")].bachelorsOrHigher);
+     d3.select(this).attr("county", eduDataById[d3.select(this).attr("data-fips")].area_name);
+     d3.select(this).attr("state", eduDataById[d3.select(this).attr("data-fips")].state);
+     d3.select(this).attr("fill", "hsl(227, 100%," + scaleMapColors(eduDataById[d3.select(this).attr("data-fips")].bachelorsOrHigher) + "%)");
+     d3.select(this).on("mouseover", handleMouseOver)
+                    .on("mouseout", handleMouseOut);
+  });
 
 });
 
 </script>
+<!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+</body>
