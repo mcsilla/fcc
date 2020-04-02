@@ -49,7 +49,7 @@ body {
         <h1 id = "title">United States Educational Attainment</h1>
         <h2 id = "description">Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)</h2>
       </div>
-      <svg id = "svgContainer" width = "1400px" height = "900px">
+      <svg id = "svgContainer" width = "1400px" height = "700px">
         <div id = "tooltip" class = "tooltip">
           <div id = "state"></div>
           <div id = "county"></div>
@@ -64,8 +64,8 @@ body {
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script>
 
-var width = 1400,
-    height = 900;
+var width = 1200,
+    height = 600;
 
 
 var urlUSCounties = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
@@ -73,7 +73,7 @@ var urlEdu = "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth
 
 var legendWidth = 600;
 var legendHeight = 40;
-var legendSideMargins = 20;
+var legendSideMargins = 40;
 
 
 var path = d3.geoPath();
@@ -109,14 +109,15 @@ function handleMouseOut(d, i) {
 document.addEventListener("DOMContentLoaded", async function () {
   let map = d3.select("#svgContainer").append("g");
 
+
   let topology = await d3.json(urlUSCounties);
   let geojson = topojson.feature(topology, topology.objects.counties);
 
   var b = path.bounds(geojson);
   var s = .9 / Math.max((b[1][0] - b[0][0]) / width, 
                         (b[1][1] - b[0][1]) / height); 
-  var t = [(width - s * (b[1][0] + b[0][0])) / 2, 
-           (height - s * (b[1][1] + b[0][1])) / 2];   
+  var t = [(width - s * (b[1][0] + b[0][0])) / 2 + 100, 
+           (height - s * (b[1][1] + b[0][1])) / 2 + 100];   
 
   map.selectAll("path")
      .data(geojson.features)
@@ -160,9 +161,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let legendGroup = d3.select("#svgContainer").append("g")
                                               .attr("id", "legend");
-  legendGroup.append("svg")
-             .attr("id", "legendSVG")
-             .selectAll("rect")
+
+  let legendTranslate = [500, 0];
+  legendGroup.selectAll("rect")
              .data(d3.range(8, 99, 1))
              .enter()
              .append("rect")
@@ -170,7 +171,8 @@ document.addEventListener("DOMContentLoaded", async function () {
              .attr("y", 0)
              .attr("width", scaleLegend.bandwidth())
              .attr("height", 30)
-             .attr("fill", d => "hsl(227, 100%," + d + "%)");
+             .attr("fill", d => "hsl(227, 100%," + d + "%)")
+             .attr("transform", "translate(" + legendTranslate + ")");
 
   var lineData = [ 
   { "x": legendSideMargins, "y": 0},  
@@ -185,18 +187,22 @@ document.addEventListener("DOMContentLoaded", async function () {
                      .y(function(d) { return d.y; })
                      .curve(d3.curveLinear);
 
-  d3.select("#legendSVG").append("path")
+  legendGroup.append("path")
                          .attr("d", lineFunction(lineData))
                          .attr("stroke", "black")
                          .attr("stroke-width", 1)
-                         .attr("fill", "none");
+                         .attr("fill", "none")
+                         .attr("transform", "translate(" + legendTranslate + ")");
 
-  d3.select("#legendSVG").append("g")
+  let axisTranslate = [legendSideMargins, 30]
+
+  legendGroup.append("g")
            .attr("id", "legendAxis")
-           .attr("transform", "translate(" + legendSideMargins + ", 30)")
+           .attr("transform", "translate(" + (legendTranslate[0] + axisTranslate[0]) + ", " + (legendTranslate[1] + axisTranslate[1]) + ")")
            .call(legendAxis)
            .selectAll("text")
            .style("font-size","14px");
+
 
   map.selectAll("path").each(function(d,i) {
      d3.select(this).attr("data-education", eduDataById[d3.select(this).attr("data-fips")].bachelorsOrHigher);
@@ -210,5 +216,5 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 </script>
-<!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
 </body>
